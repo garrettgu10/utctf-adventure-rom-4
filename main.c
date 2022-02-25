@@ -1,5 +1,6 @@
 #include <gb/gb.h>
 #include <stdio.h>
+#include <rand.h>
 #include "tile_data.h"
 
 void update_switches() {
@@ -15,26 +16,31 @@ void init() {
    set_sprite_data(0, 15, tile_data+16);
 }
 
+
 UINT8 input;
 void handle_input() {
    input = joypad();
    
 }
 
-UINT8 rand_counter;
+UINT16 rand_counter;
 void main() {
-   printf(" \n UTCTF ROM\n BY GG\n\n");
+   printf(" \n UTCTF ROM 4\n BY GG\n\n");
+   printf(" NOW WITH MUSIC\n\n");
    printf("PRESS START TO BEGIN\n");
    
    while(!(joypad() & J_START)){
       rand_counter++;
    }
 
+   initrand(rand_counter);
+
    init();
 
    while(1) {
       rand_counter++;
       handle_input();
+      tick_sound();
       wait_vbl_done();
    }
 }
