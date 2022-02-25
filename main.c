@@ -1,7 +1,10 @@
 #include <gb/gb.h>
 #include <stdio.h>
 #include <rand.h>
+#include "character.h"
 #include "tile_data.h"
+
+UINT8 blank_bg[20];
 
 void update_switches() {
    HIDE_WIN;
@@ -9,18 +12,22 @@ void update_switches() {
    SHOW_BKG;
 }
 
+static UINT8 i;
 void init() {
    DISPLAY_ON;
    set_bkg_data(0, 17, tile_data);
    set_bkg_data(17, 40, font_data);
    set_sprite_data(0, 15, tile_data+16);
-}
 
+   for(i = 0; i < 20; i++) {
+      blank_bg[i] = 0;
+   }
 
-UINT8 input;
-void handle_input() {
-   input = joypad();
-   
+   for(i = 0; i < 18; i++) {
+      set_bkg_tiles(0, i, 20, 1, blank_bg);
+   }
+
+   init_character();
 }
 
 UINT16 rand_counter;
@@ -41,6 +48,7 @@ void main() {
       rand_counter++;
       handle_input();
       tick_sound();
+      tick_character();
       wait_vbl_done();
    }
 }
