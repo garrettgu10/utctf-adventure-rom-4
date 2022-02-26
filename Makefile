@@ -1,14 +1,8 @@
-tetris99.c: Makefile mod2gbt tetris99.mod
-	./mod2gbt tetris99.mod tetris99 2
-	mv output.c tetris99.c
-	sed -i -e 's/bank=2/bank 2/g' ./tetris99.c
-	rm tetris99.c-e
+game.gb: *.c *.h Makefile
+	lcc -o game.gb -Wl-yt1 -Wl-yo4 -Wl-ya0 *.c
 
-moderntetris.gb: *.c *.h Makefile
-	lcc -o moderntetris.gb -Wl-yt1 -Wl-yo4 -Wl-ya0 *.c
+run: game.gb
+	java.exe -cp ../pb/src org.the429ers.gameboy.GameBoy game.gb
 
-run: moderntetris.gb
-	java -cp ../pb/out/production/pb/ org.the429ers.gameboy.GameBoy moderntetris.gb
-
-sameboy: moderntetris.gb
-	open moderntetris.gb
+sameboy: game.gb
+	open game.gb

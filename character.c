@@ -1,4 +1,5 @@
 #include "character.h"
+#include "map.h"
 #include <gb/gb.h>
 
 static INT16 y_v = 0;
@@ -8,19 +9,20 @@ static INT16 x_v = 0;
 #define MIN_X_VEL 200
 #define X_DECEL 10
 #define GRAVITY 10
-#define FLOOR_Y 136
-static UINT16 x = 75 * 256;
-static UINT16 y = 75 * 256;
+static UINT16 x = 24 * 256;
+static UINT16 y = 16 * 256;
 
 void init_character() {
     SPRITES_8x8;
-    set_sprite_tile(0, 0);
+    set_sprite_tile(0, 3);
     move_sprite(0, x, y);
 
     SHOW_SPRITES;
 }
 
 UINT8 ready_for_jump;
+static UINT16 new_x;
+static UINT16 new_y;
 void tick_character() {
     if(y_v < MAX_Y_VEL) {
         y_v += GRAVITY;
@@ -32,20 +34,55 @@ void tick_character() {
         x_v += X_DECEL;
     }
 
-    y += y_v;
-    x += x_v;
+    new_y = y + y_v;
+    new_x = x + x_v;
 
-    if(x > (160 << 8)) {
-        x = 8 << 8;
+    if(new_y / (8*256) != y / (8 * 256)) {
+        //we are crossing a vertical tile boundary
+        if(y_v > 0) {
+            //we are going down
+            if(new_y / (8 * 256) <= 18 && (MAP_GET(ROW(y / (8 * 256)), x / (8 * 256) - 1) == 1
+                || MAP_GET(ROW(y / (8 * 256)), x / (8 * 256)) == 1)) {
+                //we are on a floor tile
+                y_v = 0;
+                new_y = y / (8 * 256) * (8 * 256) + 8*256 - 1;
+                ready_for_jump = 1;
+            }
+        }
     }
 
-    if(x < (8 << 8)) {
-        x = 160 << 8;
+    if(new_x / (8*256) != x / (8*256)) {
+        //we are crossing a horizontal tile boundary
+        if(x_v > 0) {
+            //we are going right
+            if(new_x / (8 * 256) < 20 && MAP_GET(ROW(y / (8 * 256) - 1), new_x / (8 * 256)) == 1) {
+                x_v = 0;
+                new_x = x / (8 * 256) * (8 * 256) + 8*256 - 1;
+            }
+        }else if(x_v < 0) {
+            //we are going left
+            if(new_x / (8 * 256) > 1 && MAP_GET(ROW(y / (8 * 256) - 1), new_x / (8 * 256) - 1) == 1) {
+                x_v = 0;
+                new_x = x / (8 * 256) * (8 * 256) + 1;
+            }
+        }
     }
 
-    if(y > FLOOR_Y << 8) {
-        y = FLOOR_Y << 8;
-        ready_for_jump = 1;
+    if(new_x > (160 << 8)) {
+        new_x = 8 << 8;
+        change_map(1);
+    }
+
+    if(new_x < (8 << 8)) {
+        new_x = 160 << 8;
+        change_map(-1);
+    }
+
+    x = new_x;
+    y = new_y;
+
+    if (y > 20 * 8 * 256) {
+        reset();
     }
 
     move_sprite(0, x >> 8, y >> 8);
@@ -58,12 +95,13 @@ void handle_input() {
     if(input & J_A) {
         //jump
         if(ready_for_jump){
-            y_v = -500;
+            y_v = -400;
             ready_for_jump = 0;
         }
     }
 
     if(input & J_LEFT) {
+        set_sprite_prop(0, get_sprite_prop(0) | S_FLIPX);
         if(x_v > -MIN_X_VEL) {
             x_v = -MIN_X_VEL;
         }
@@ -74,6 +112,7 @@ void handle_input() {
     }
     
     if(input & J_RIGHT) {
+        set_sprite_prop(0, get_sprite_prop(0) & ~S_FLIPX);
         if(x_v < MIN_X_VEL) {
             x_v = MIN_X_VEL;
         }

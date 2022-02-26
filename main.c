@@ -3,6 +3,7 @@
 #include <rand.h>
 #include "character.h"
 #include "tile_data.h"
+#include "map.h"
 
 UINT8 blank_bg[20];
 
@@ -28,6 +29,8 @@ void init() {
    }
 
    init_character();
+   init_map();
+   draw_map();
 }
 
 UINT16 rand_counter;
