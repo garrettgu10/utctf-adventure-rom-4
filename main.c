@@ -4,6 +4,7 @@
 #include "character.h"
 #include "tile_data.h"
 #include "map.h"
+#include "sound.h"
 
 UINT8 blank_bg[20];
 
@@ -30,6 +31,7 @@ void init() {
 
    init_character();
    init_map();
+   init_sound();
    draw_map();
 }
 
